@@ -1,4 +1,4 @@
-use crate::categories::Categories;
+use super::Categories;
 
 pub struct File {
     pub name: String,

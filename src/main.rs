@@ -1,10 +1,7 @@
-mod asset;
-mod categories;
-mod workspace;
+mod functions;
 
-use categories::Categories;
 use eframe::egui;
-use workspace::{ui_workspace, Workspace};
+use functions::{ui_workspace, Categories, Workspace};
 
 fn main() -> eframe::Result {
     // env_logger::init(); // Log to stderr (if you run with `RUST_LOG=debug`).
@@ -40,8 +37,7 @@ impl Default for App {
 impl eframe::App for App {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
-            ui_workspace(ui, self);
-            ui.label(&self.workspace.name);
+            ui_workspace(ui, self, ctx);
         });
     }
 }
