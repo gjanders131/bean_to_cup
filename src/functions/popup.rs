@@ -16,9 +16,10 @@ pub trait Popup {
             .resizable([false, false])
             .movable(true)
             .collapsible(false)
-            .show(ctx, |new_ui| self.ui(new_ui));
+            .show(ctx, |ui| {
+                self.ui(ui);
+            });
     }
 
-    /// UI method
     fn ui(&mut self, ui: &mut Ui);
 }

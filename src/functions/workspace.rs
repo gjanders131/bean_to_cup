@@ -1,6 +1,6 @@
 use std::fs;
 
-use egui::Ui;
+use egui::{Ui, Widget, Window};
 use serde::{Deserialize, Serialize};
 
 use crate::App;
@@ -43,32 +43,26 @@ impl Workspace {
         )
         .map_err(|err| err.to_string())
     }
-}
 
-pub fn ui_workspace(ui: &mut Ui, app: &mut App, ctx: &egui::Context) {
-    ui.vertical(|ui| {
-        ui.heading("Workspace");
-        ui.horizontal(|ui| {
-            if ui.button("Open Workspace").clicked() {
-                match Workspace::open_workspace() {
-                    Ok(workspace) => app.workspace = workspace,
-                    Err(err) => println!("{}", err),
+    pub fn ui_workspace(ui: &mut Ui, app: &mut App, ctx: &egui::Context) {
+        ui.vertical(|ui| {
+            ui.heading("Workspace");
+            ui.horizontal(|ui| {
+                if ui.button("Open Workspace").clicked() {
+                    match Workspace::open_workspace() {
+                        Ok(workspace) => app.workspace = workspace,
+                        Err(err) => println!("{}", err),
+                    }
                 }
-            }
-            if ui.button("Create Workspace").clicked() {
-                egui::Window::new("Create a new workspace")
-                    .default_width(300.0)
-                    .default_height(100.0)
-                    .open(&mut true)
-                    .resizable([false, false])
-                    .movable(true)
-                    .collapsible(false)
-                    .show(ctx, |new_ui| new_ui.label("Test Label"));
-            }
+                if ui.button("Create Workspace").clicked() {
+                    CreateWorkspace::default().show(ctx);
+                }
+            });
         });
-    });
+    }
 }
 
+#[derive(Default, Debug, Serialize, Deserialize)]
 pub struct CreateWorkspace {
     name: String,
     path: String,
@@ -81,11 +75,20 @@ impl Popup for CreateWorkspace {
 
     fn ui(&mut self, ui: &mut Ui) {
         ui.label("Enter a name for your new workspace:");
+        ui.text_edit_singleline(&mut self.name);
+        if ui.button("Workspace Location").clicked() {
+            match rfd::FileDialog::new().pick_folder() {
+                Some(folder) => self.path = folder.to_str().unwrap().to_string(),
+                None => println!("No Folder Selected"),
+            }
+        }
+        ui.label(&self.name);
+        ui.label(&self.path);
     }
 
     fn is_enabled(&mut self) -> bool {
         true
     }
 
-    fn show(&mut self, ctx: &egui::Context) {}
+    // fn show(&mut self, ctx: &egui::Context) {}
 }
