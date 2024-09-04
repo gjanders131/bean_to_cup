@@ -1,17 +1,18 @@
 use std::fs;
 
-use egui::{Ui, Widget, Window};
+use egui::{pos2, Order, Ui, Widget, Window};
 use serde::{Deserialize, Serialize};
 
-use crate::App;
+use super::{Categories, Popup, TemplateApp};
 
-use super::{Categories, Popup};
-
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Default, Serialize, Deserialize)]
+#[serde(default)]
 pub struct Workspace {
     pub name: String,
     pub path: String,
     pub dir_categories: Categories,
+    #[serde(skip)]
+    pub ui_create_workspace: Box<dyn Popup>,
 }
 
 impl Workspace {
@@ -20,6 +21,7 @@ impl Workspace {
             name,
             path,
             dir_categories,
+            ui_create_workspace: Box::<CreateWorkspace>::default(),
         }
     }
 
@@ -43,26 +45,27 @@ impl Workspace {
         )
         .map_err(|err| err.to_string())
     }
-
-    pub fn ui_workspace(ui: &mut Ui, app: &mut App, ctx: &egui::Context) {
-        ui.vertical(|ui| {
-            ui.heading("Workspace");
-            ui.horizontal(|ui| {
-                if ui.button("Open Workspace").clicked() {
-                    match Workspace::open_workspace() {
-                        Ok(workspace) => app.workspace = workspace,
-                        Err(err) => println!("{}", err),
-                    }
-                }
-                if ui.button("Create Workspace").clicked() {
-                    CreateWorkspace::default().show(ctx);
-                }
-            });
-        });
-    }
 }
 
-#[derive(Default, Debug, Serialize, Deserialize)]
+pub fn ui_workspace(ui: &mut Ui, app: &mut TemplateApp, ctx: &egui::Context) {
+    ui.vertical(|ui| {
+        ui.heading("Workspace");
+        ui.horizontal(|ui| {
+            if ui.button("Open Workspace").clicked() {
+                match Workspace::open_workspace() {
+                    Ok(workspace) => app.workspace = workspace,
+                    Err(err) => println!("{}", err),
+                }
+            }
+            if ui.button("Create Workspace").clicked() {
+                let open = &mut true;
+                app.create_workspace.show(ctx, open);
+            }
+        });
+    });
+}
+
+#[derive(Default, Serialize, Deserialize)]
 pub struct CreateWorkspace {
     name: String,
     path: String,
@@ -90,5 +93,18 @@ impl Popup for CreateWorkspace {
         true
     }
 
-    // fn show(&mut self, ctx: &egui::Context) {}
+    fn show(&mut self, ctx: &egui::Context, open: &mut bool) {
+        egui::Window::new(self.name())
+            .default_width(300.0)
+            .default_height(100.0)
+            .open(open)
+            .resizable([false, false])
+            .movable(true)
+            .collapsible(false)
+            .default_pos(pos2(0.0, 0.0))
+            .order(Order::Foreground)
+            .show(ctx, |ui| {
+                self.ui(ui);
+            });
+    }
 }

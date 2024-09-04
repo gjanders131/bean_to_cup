@@ -1,4 +1,4 @@
-use egui::Ui;
+use egui::{pos2, Order, Ui, Window};
 
 /// Popup Functions
 pub trait Popup {
@@ -8,18 +8,7 @@ pub trait Popup {
     fn is_enabled(&mut self) -> bool;
 
     /// Show windows, etc
-    fn show(&mut self, ctx: &egui::Context) {
-        egui::Window::new(self.name())
-            .default_width(300.0)
-            .default_height(100.0)
-            .open(&mut self.is_enabled())
-            .resizable([false, false])
-            .movable(true)
-            .collapsible(false)
-            .show(ctx, |ui| {
-                self.ui(ui);
-            });
-    }
+    fn show(&mut self, ctx: &egui::Context, open: &mut bool);
 
     fn ui(&mut self, ui: &mut Ui);
 }
